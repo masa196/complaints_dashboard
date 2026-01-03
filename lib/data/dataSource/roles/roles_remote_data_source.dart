@@ -4,6 +4,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/error_message_model.dart';
 import '../../../../core/utils/AuthInterceptor.dart';
+import '../../../domain/entities/employees/assign_remove_role_entity.dart';
 import '../../../domain/entities/roles/create_role_entity.dart';
 import '../../models/permissions/all_permissions_model.dart';
 import '../../models/roles/role_model.dart';
@@ -17,6 +18,8 @@ abstract class BaseRolesRemoteDataSource {
   Future<void> createRole(CreateRoleEntity params);
   Future<void> updateRolePermissions(int roleId, List<String> permissions);
   Future<void> deleteRole(int roleId);
+  Future<void> assignRole(AssignRemoveRoleEntity params);
+  Future<void> removeRole(AssignRemoveRoleEntity params);
 }
 
 class RolesRemoteDataSource extends BaseRolesRemoteDataSource {
@@ -131,6 +134,34 @@ class RolesRemoteDataSource extends BaseRolesRemoteDataSource {
       options: Options(responseType: ResponseType.json),
     );
 
+    if (response.statusCode != 200) {
+      throw ServerException(
+        errorMessageModel: ErrorMessageModel.fromJson(response.data),
+      );
+    }
+  }
+
+  @override
+  Future<void> assignRole(AssignRemoveRoleEntity params) async {
+    final response = await dio.post(
+      '${ApiConstants.baseUrl}/api/admin/users/${params.employeeId}/assign-role',
+      data: {'role': params.role},
+      options: Options(responseType: ResponseType.json),
+    );
+    if (response.statusCode != 200) {
+      throw ServerException(
+        errorMessageModel: ErrorMessageModel.fromJson(response.data),
+      );
+    }
+  }
+
+  @override
+  Future<void> removeRole(AssignRemoveRoleEntity params) async {
+    final response = await dio.post(
+      '${ApiConstants.baseUrl}/api/admin/users/${params.employeeId}/remove-role',
+      data: {'role': params.role},
+      options: Options(responseType: ResponseType.json),
+    );
     if (response.statusCode != 200) {
       throw ServerException(
         errorMessageModel: ErrorMessageModel.fromJson(response.data),

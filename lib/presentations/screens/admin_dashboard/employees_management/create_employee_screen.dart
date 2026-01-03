@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../controller/bloc/employees_managements/create_employee/create_email_bloc.dart';
-import '../../controller/bloc/employees_managements/create_employee/create_email_state.dart';
-import '../../controller/cubit/employees_management/create_employees/create_email_cubit.dart';
-import '../../controller/cubit/employees_management/create_employees/create_email_state_cubit.dart';
+import '../../../controller/bloc/employees_managements/create_employee/create_email_bloc.dart';
+import '../../../controller/bloc/employees_managements/create_employee/create_email_state.dart';
+import '../../../controller/cubit/employees_management/create_employees/create_email_cubit.dart';
+import '../../../controller/cubit/employees_management/create_employees/create_email_state_cubit.dart';
+
 
 
 class EmployeeFormCard extends StatefulWidget {

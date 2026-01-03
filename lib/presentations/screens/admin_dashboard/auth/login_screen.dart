@@ -2,17 +2,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/utils/di.dart';
-import '../controller/bloc/auth/auth_bloc.dart';
-import '../controller/cubit/auth/login_cubit.dart';
-import '../controller/cubit/auth/login_state.dart';
-import '../controller/cubit/complaints/complaints_cubit.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
-import 'employee_dashboard/employee_dashboard_screen.dart';
-import 'admin_dashboard/admin_panel_app.dart';
-import 'admin_dashboard/create_employee_screen.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/utils/di.dart';
+import '../../../controller/bloc/auth/auth_bloc.dart';
+import '../../../controller/cubit/auth/login_cubit.dart';
+import '../../../controller/cubit/auth/login_state.dart';
+import '../../../controller/cubit/complaints/complaints_cubit.dart';
+import '../../../widgets/custom_button.dart';
+import '../../../widgets/custom_text_field.dart';
+import '../../employee_dashboard/employee_dashboard_screen.dart';
+import '../admin_panel_app.dart';
+
 
 
 class LoginScreen extends StatelessWidget {
@@ -129,9 +129,14 @@ class LoginScreen extends StatelessWidget {
             ),
            const SizedBox(height: 32),
            BlocListener<AuthBloc, AuthState>(
-            listenWhen: (previous, current) => previous.runtimeType != current.runtimeType,
+            listenWhen: (previous, current) {
+             if (previous is AuthCooldown && current is AuthCooldown) {
+              return false;
+             }
+             return previous.runtimeType != current.runtimeType;
+            },
             listener: (context, authState) {
-             ScaffoldMessenger.of(context).removeCurrentSnackBar();
+             ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
              if (authState is AuthCooldown) {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(authState.message), backgroundColor: Colors.orange, duration: const Duration(seconds: 3)));
@@ -142,7 +147,8 @@ class LoginScreen extends StatelessWidget {
 
               Future.microtask(() {
                final role = authState.admin.role;
-
+               print("DEBUG: User Role Value = ${authState.admin.role}");
+               print("DEBUG: User Role Type = ${authState.admin.role.runtimeType}");
                if (role == 1) {
                 Navigator.pushReplacement(
                  context,

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 enum AdminPage {
   createEmployee,
   rolesManagement,
+   employeesList
 }
 
 class AdminNavigationCubit extends Cubit<AdminPage> {
@@ -10,4 +11,5 @@ class AdminNavigationCubit extends Cubit<AdminPage> {
 
   void goToCreateEmployee() => emit(AdminPage.createEmployee);
   void goToRolesManagement() => emit(AdminPage.rolesManagement);
+  void goToEmployeesList() => emit(AdminPage.employeesList);
 }

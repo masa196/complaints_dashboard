@@ -10,7 +10,7 @@ class AssignRemoveRoleEntity {
 
   AssignRemoveRoleEntity copyWith({
     required String role,
-    required int userId,
+    required int employeeId,
   }) {
     return AssignRemoveRoleEntity(
       role: role ,
@@ -21,7 +21,7 @@ class AssignRemoveRoleEntity {
 
   Map<String, dynamic> toJson() {
     return {
-      'roles': role,
+      'role': role,
     };
   }
 }

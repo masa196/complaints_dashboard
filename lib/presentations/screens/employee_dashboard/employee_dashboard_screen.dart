@@ -1,7 +1,6 @@
 // lib/employee_dashboard/presentation/screens/employee_dashboard_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../auth_admin/presentations/screens/login_screen.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/di.dart';
 import '../../../domain/use_cases/complaints/lock_complaint_usecase.dart';
@@ -15,6 +14,7 @@ import '../../controller/cubit/complaints/complaints_cubit.dart';
 import '../../controller/cubit/complaints/complaints_state.dart';
 import '../../widgets/complaint_card.dart';
 import '../../widgets/employee_sidebar.dart';
+import '../admin_dashboard/auth/login_screen.dart';
 
 class EmployeeDashboardScreen extends StatelessWidget {
   const EmployeeDashboardScreen({Key? key}) : super(key: key);

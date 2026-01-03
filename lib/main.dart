@@ -1,7 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'auth_admin/presentations/screens/login_screen.dart';
+import 'package:untitled/presentations/screens/admin_dashboard/auth/login_screen.dart';
 import 'core/utils/di.dart';
 import 'core/utils/token_service.dart';
 

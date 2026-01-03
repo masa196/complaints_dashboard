@@ -1,7 +1,6 @@
 // lib/auth_admin/presentations/components/admin_content_layout.dart
 import 'package:flutter/material.dart';
-
-import '../screens/admin_dashboard/admin_panel_app.dart';
+import '../screens/admin_dashboard/admin_sidepar.dart';
 
 
 

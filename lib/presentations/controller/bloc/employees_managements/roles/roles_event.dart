@@ -9,19 +9,19 @@ abstract class RolesEvent extends Equatable {
 
 class FetchRolesEvent extends RolesEvent {}
 
-class SyncUserRolesEvent extends RolesEvent {
-  final int userId;
+class SyncEmployeeRolesEvent extends RolesEvent {
+  final int employeeId;
   final List<String> oldRoles;
   final List<String> newRoles;
 
-  const SyncUserRolesEvent({
-    required this.userId,
+  const SyncEmployeeRolesEvent({
+    required this.employeeId,
     required this.oldRoles,
     required this.newRoles,
   });
 
   @override
-  List<Object?> get props => [userId, oldRoles, newRoles];
+  List<Object?> get props => [employeeId, oldRoles, newRoles];
 }
 
 class CreateRoleEvent extends RolesEvent {

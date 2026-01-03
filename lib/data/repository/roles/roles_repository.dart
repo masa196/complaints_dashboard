@@ -4,6 +4,7 @@ import 'package:dartz/dartz.dart';
 
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failure.dart';
+import '../../../domain/entities/employees/assign_remove_role_entity.dart';
 import '../../../domain/entities/roles/create_role_entity.dart';
 import '../../../domain/repository/roles/roles_base_repository.dart';
 import '../../dataSource/roles/roles_remote_data_source.dart';
@@ -80,4 +81,26 @@ class RolesRepository extends RolesBaseRepository {
       return Left(ServerFailure(e.errorMessageModel.userFriendlyMessage()));
     }
   }
+
+  @override
+  Future<Either<Failure, Unit>> assignRole(AssignRemoveRoleEntity params) async {
+    try {
+      await remote.assignRole(params);
+      return const Right(unit);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.errorMessageModel.userFriendlyMessage()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Unit>> removeRole(AssignRemoveRoleEntity params) async {
+    try {
+      await remote.removeRole(params);
+      return const Right(unit);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.errorMessageModel.userFriendlyMessage()));
+    }
+  }
+
+
 }

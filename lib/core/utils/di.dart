@@ -5,13 +5,20 @@ import 'package:untitled/data/repository/complaints/complaints_repository.dart';
 import 'package:untitled/domain/use_cases/complaints/get_complaints_usecase.dart';
 import '../../data/dataSource/auth/login_remote_data_source.dart';
 import '../../data/dataSource/employees_management/create_email_data_source.dart';
+import '../../data/dataSource/employees_management/management_employees_data_source.dart';
 import '../../data/dataSource/roles/roles_remote_data_source.dart';
 import '../../data/repository/auth/login_repo.dart';
 import '../../data/repository/employees_management/create_email_repo.dart';
+import '../../data/repository/employees_management/management_employee_repo.dart';
 import '../../data/repository/roles/roles_repository.dart';
 import '../../domain/use_cases/auth/login_usecase.dart';
+import '../../domain/use_cases/employees_managements/assign_role_usecase.dart';
 import '../../domain/use_cases/employees_managements/create_email_usecase.dart';
 import '../../domain/use_cases/auth/logout_usecase.dart';
+import '../../domain/use_cases/employees_managements/delete_employee_usecase.dart';
+import '../../domain/use_cases/employees_managements/get_employees_usecase.dart';
+import '../../domain/use_cases/employees_managements/remove_role_usecase.dart';
+import '../../domain/use_cases/employees_managements/update_employess_usecase.dart';
 import '../../domain/use_cases/permissions/get_permissions.dart';
 import '../../domain/use_cases/permissions/update_role_permissions_usecase.dart';
 import '../../domain/use_cases/roles/create_role_usecase.dart';
@@ -20,11 +27,13 @@ import '../../domain/use_cases/roles/get_role_details.dart';
 import '../../domain/use_cases/roles/get_roles_usecase.dart';
 import '../../presentations/controller/bloc/auth/auth_bloc.dart';
 import '../../presentations/controller/bloc/employees_managements/create_employee/create_email_bloc.dart';
+import '../../presentations/controller/bloc/employees_managements/employees/employees_bloc.dart';
 import '../../presentations/controller/bloc/employees_managements/roles/role_details_bloc.dart';
 import '../../presentations/controller/bloc/employees_managements/roles/roles_bloc.dart';
 import '../../presentations/controller/cubit/auth/login_cubit.dart';
 import '../../presentations/controller/cubit/complaints/complaints_cubit.dart';
 import '../../presentations/controller/cubit/employees_management/create_employees/create_email_cubit.dart';
+import '../../presentations/controller/cubit/employees_management/update_employess/update_employee_cubit.dart';
 import '../network/dio_client.dart';
 import '../utils/token_service.dart';
 
@@ -42,12 +51,14 @@ class AppDependencies {
   static final createEmailDataSource = CreateEmailDataSource(dio: dio);
   static final complaintsRemoteDateSource = ComplaintsRemoteDataSource(dio: dio);
   static final rolesRemoteDataSource = RolesRemoteDataSource(dio: dio);
+  static final  employeesRemoteDataSource = ManagementEmployeesDataSource(dio: dio);
 
   // Repositories
   static final loginRepo = LoginRepo(loginRemoteDataSource);
   static final createEmailRepo = CreateEmailRepo(createEmailDataSource);
   static final complaintsRepo = ComplaintsRepository(complaintsRemoteDateSource);
   static final rolesRepository = RolesRepository(rolesRemoteDataSource);
+  static final employeesRepo = ManagementEmployeeRepo(employeesRemoteDataSource);
 
   // UseCases (domain layer)
   static final loginUseCase = LoginUseCase(loginRepo);
@@ -60,6 +71,13 @@ class AppDependencies {
   static final createRoleUseCase = CreateRoleUseCase(rolesRepository);
   static final deleteRoleUseCase = DeleteRoleUseCase(rolesRepository);
   static final getRoleDetailsUseCase = GetRoleDetailsUseCase(rolesRepository);
+  static final assignRoleToEmployee = AssignRoleUseCase(rolesRepository);
+  static final removeRoleToEmployee = RemoveRoleUseCase(rolesRepository);
+
+  //employee
+  static final getEmployeesUseCase = GetEmployeesUseCase(employeesRepo);
+  static final deleteEmployeeUseCase = DeleteEmployeeUseCase(employeesRepo);
+  static final updateEmployeeUseCase= UpdateEmployeeUseCase(employeesRepo);
 
 // permissions
   static final getPermissionsUseCase = GetPermissionsDetailsUseCase(rolesRepository);
@@ -89,6 +107,8 @@ class AppDependencies {
           getRolesUseCase,
           createRoleUseCase,
           deleteRoleUseCase,
+          assignRoleToEmployee,
+          removeRoleToEmployee
         )..add(FetchRolesEvent()),
       ),
 
@@ -99,6 +119,16 @@ class AppDependencies {
           updateRolePermissionsUseCase,
         ),
       ),
+
+      BlocProvider<EmployeesBloc>(
+        create: (_) => EmployeesBloc(
+          getEmployeesUseCase,
+           deleteEmployeeUseCase,
+          updateEmployeeUseCase
+        ),
+      ),
+
+
 
 
     ];

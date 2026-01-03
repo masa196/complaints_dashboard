@@ -43,12 +43,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
+    // 🛑 حماية: منع الطلب إذا كان هناك Cooldown أو تحميل حالي
+    if (state is AuthLoading || state is AuthCooldown) return;
+
     emit(AuthLoading());
-    final Either<Failure, LoginResponse> result = await loginUseCase.execute(event.email, event.password);
+    final result = await loginUseCase.execute(event.email, event.password);
 
     await result.fold(
           (failure) async {
         if (failure is ServerFailure && failure.retryAfterSeconds != null) {
+          // بدلاً من emit مباشرة، نرسل حدث بدء العد التنازلي
           add(StartCooldown(seconds: failure.retryAfterSeconds!, message: failure.message));
         } else {
           emit(AuthFailure(message: failure.message));
@@ -65,9 +69,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLogoutRequested(LogoutRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
-
     final token = TokenService().token;
-
     if (token == null) {
       await SharedPrefsStorage.clearAll();
       emit(AuthUnauthenticated());
@@ -95,28 +97,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onStartCooldown(StartCooldown event, Emitter<AuthState> emit) async {
-    _cooldownTimer?.cancel();
-
+    _cooldownTimer?.cancel(); // إلغاء أي تايمر سابق
     _currentSeconds = event.seconds;
     _cooldownMessage = event.message;
 
     emit(AuthCooldown(secondsRemaining: _currentSeconds, message: _cooldownMessage));
 
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      add(DecrementCooldown());
+      // التحقق من أن الـ Bloc لم يُغلق قبل إضافة الحدث
+      if (!isClosed) {
+        add(DecrementCooldown());
+      } else {
+        timer.cancel();
+      }
     });
   }
 
   Future<void> _onDecrementCooldown(DecrementCooldown event, Emitter<AuthState> emit) async {
-    _currentSeconds = _currentSeconds - 1;
-    if (_currentSeconds > 0) {
+    if (_currentSeconds > 1) {
+      _currentSeconds--;
       emit(AuthCooldown(secondsRemaining: _currentSeconds, message: _cooldownMessage));
     } else {
       _cooldownTimer?.cancel();
       _cooldownTimer = null;
       _currentSeconds = 0;
-      _cooldownMessage = '';
-      emit(AuthUnauthenticated());
+      emit(AuthUnauthenticated()); // العودة للحالة الطبيعية بعد انتهاء الوقت
     }
   }
 

@@ -19,11 +19,11 @@ class AdminModel extends Admin with EquatableMixin {
       email: json["email"] as String,
 
 
-      role: json["roles"] == null
+      role: json["role"] == null
           ? null
-          : (json["roles"] is int
-          ? json["roles"] as int
-          : int.tryParse(json["roles"].toString())),
+          : (json["role"] is int
+          ? json["role"] as int
+          : int.tryParse(json["role"].toString())),
     );
   }
 
