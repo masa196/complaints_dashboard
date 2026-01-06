@@ -1,3 +1,5 @@
+// lib/auth_admin/presentations/controllers/cubit/employees_management/create_employees/create_email_cubit.dart
+
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/employees_managements/create_employee/create_email_bloc.dart';
@@ -9,8 +11,7 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
   final CreateEmailBloc createEmailBloc;
   StreamSubscription? _blocSub;
 
-  CreateEmailCubit({required this.createEmailBloc})
-      : super(const CreateEmailStateCubit()) {
+  CreateEmailCubit({required this.createEmailBloc}) : super(const CreateEmailStateCubit()) {
     _blocSub = createEmailBloc.stream.listen((blocState) {
       if (blocState is CreateEmailLoading) {
         emit(state.copyWith(submitting: true));
@@ -20,8 +21,6 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
         final map = Map<String, String>.from(state.fieldErrors);
         map['general'] = blocState.message;
         emit(state.copyWith(submitting: false, showErrors: true, fieldErrors: map));
-      } else {
-        emit(state.copyWith(submitting: false));
       }
     });
   }
@@ -36,10 +35,22 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
     emit(state.copyWith(email: value, fieldErrors: newFieldErrors));
   }
 
+  // التعديل هنا: نضمن مسح الخطأ وقبول القيمة الفارغة (null)
   void setGovernmentAgencyId(int? id) {
-    print("Cubit → received id: $id");
-    emit(state.copyWith(governmentAgencyId: id));
-    print("Cubit → updated state.govAgencyId: ${state.governmentAgencyId}");
+    final newFieldErrors = {...state.fieldErrors}..remove('government_agency_id');
+    // نحدث الـ state مع مسح الخطأ مباشرة
+    emit(CreateEmailStateCubit(
+      name: state.name,
+      email: state.email,
+      password: state.password,
+      passwordConfirmation: state.passwordConfirmation,
+      governmentAgencyId: id, // قد يكون null هنا
+      showErrors: state.showErrors,
+      fieldErrors: newFieldErrors,
+      submitting: state.submitting,
+      obscurePassword: state.obscurePassword,
+      obscureConfirmation: state.obscureConfirmation,
+    ));
   }
 
   void setPassword(String value) {
@@ -63,37 +74,21 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
   void submit() {
     final name = state.name.trim();
     final email = state.email.trim();
-    final governmentAgencyId = state.governmentAgencyId;
-    final password = state.password;
-    final passwordConfirmation = state.passwordConfirmation;
-
-    print("Submit → final govAgencyId = $governmentAgencyId");
+    final govId = state.governmentAgencyId;
+    final pwd = state.password;
+    final pwdConf = state.passwordConfirmation;
 
     final Map<String, String> errors = {};
 
-    if (email.isEmpty) {
-      errors['email'] = 'الرجاء إدخال البريد الإلكتروني';
-    } else if (!email.contains('@') || !email.contains('.')) {
-      errors['email'] = 'البريد غير صالح — مثال: example@gmail.com';
+    if (name.isEmpty) errors['name'] = 'الرجاء إدخال الاسم الكامل';
+    if (email.isEmpty) errors['email'] = 'الرجاء إدخال البريد الإلكتروني';
+    if (govId == null) {
+      errors['government_agency_id'] = 'الرجاء إدخال رقم الوزارة';
+    } else if (govId < 1 || govId > 5) {
+      errors['government_agency_id'] = 'يجب أن يكون الرقم بين 1 و 5 فقط';
     }
-
-    if (name.isEmpty) {
-      errors['name'] = 'الرجاء إدخال اسم الموظف';
-    }
-
-    if (governmentAgencyId == null || governmentAgencyId <= 0) {
-      errors['government_agency_id'] = 'الرجاء إدخال رقم الوزارة (1-5)';
-    }
-
-    if (password.isEmpty) {
-      errors['password'] = 'الرجاء إدخال كلمة السر';
-    } else if (password.length < 6) {
-      errors['password'] = 'كلمة المرور يجب أن تكون على الأقل 6 أحرف';
-    }
-
-    if (passwordConfirmation.isEmpty || passwordConfirmation != password) {
-      errors['password_confirmation'] = 'كلمة السر غير متطابقة';
-    }
+    if (pwd.isEmpty) errors['password'] = 'الرجاء إدخال كلمة السر';
+    if (pwdConf != pwd) errors['password_confirmation'] = 'كلمة السر غير متطابقة';
 
     if (errors.isNotEmpty) {
       emit(state.copyWith(fieldErrors: errors, showErrors: true));
@@ -101,16 +96,7 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
     }
 
     emit(state.copyWith(submitting: true, fieldErrors: {}));
-
-    createEmailBloc.add(
-      CreateEmailRequested(
-        name,
-        email,
-        password,
-        passwordConfirmation,
-        governmentAgencyId!,
-      ),
-    );
+    createEmailBloc.add(CreateEmailRequested(name, email, pwd, pwdConf, govId!));
   }
 
   void clearAll() {

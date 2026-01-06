@@ -5,7 +5,7 @@ class CreateEmailStateCubit extends Equatable {
   final String email;
   final String password;
   final String passwordConfirmation;
-  final int? governmentAgencyId; // ← مهم: صار int? بدل 0
+  final int? governmentAgencyId;
   final bool showErrors;
   final Map<String, String> fieldErrors;
   final bool submitting;

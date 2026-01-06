@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:untitled/data/dataSource/complaints/complaints_remote_data_source.dart';
 import 'package:untitled/data/repository/complaints/complaints_repository.dart';
 import 'package:untitled/domain/use_cases/complaints/get_complaints_usecase.dart';
+import '../../data/dataSource/Statistic/statistic_reomte_data_source.dart';
 import '../../data/dataSource/auth/login_remote_data_source.dart';
 import '../../data/dataSource/employees_management/create_email_data_source.dart';
 import '../../data/dataSource/employees_management/management_employees_data_source.dart';
@@ -11,6 +12,9 @@ import '../../data/repository/auth/login_repo.dart';
 import '../../data/repository/employees_management/create_email_repo.dart';
 import '../../data/repository/employees_management/management_employee_repo.dart';
 import '../../data/repository/roles/roles_repository.dart';
+import '../../data/repository/statistic/statistic_repository.dart';
+import '../../domain/use_cases/Statistic/download_report_usecase.dart';
+import '../../domain/use_cases/Statistic/get_statistic_usecase.dart';
 import '../../domain/use_cases/auth/login_usecase.dart';
 import '../../domain/use_cases/employees_managements/assign_role_usecase.dart';
 import '../../domain/use_cases/employees_managements/create_email_usecase.dart';
@@ -30,6 +34,8 @@ import '../../presentations/controller/bloc/employees_managements/create_employe
 import '../../presentations/controller/bloc/employees_managements/employees/employees_bloc.dart';
 import '../../presentations/controller/bloc/employees_managements/roles/role_details_bloc.dart';
 import '../../presentations/controller/bloc/employees_managements/roles/roles_bloc.dart';
+import '../../presentations/controller/bloc/reports/reports_bloc.dart';
+import '../../presentations/controller/bloc/statistics/statistics_bloc.dart';
 import '../../presentations/controller/cubit/auth/login_cubit.dart';
 import '../../presentations/controller/cubit/complaints/complaints_cubit.dart';
 import '../../presentations/controller/cubit/employees_management/create_employees/create_email_cubit.dart';
@@ -52,6 +58,7 @@ class AppDependencies {
   static final complaintsRemoteDateSource = ComplaintsRemoteDataSource(dio: dio);
   static final rolesRemoteDataSource = RolesRemoteDataSource(dio: dio);
   static final  employeesRemoteDataSource = ManagementEmployeesDataSource(dio: dio);
+  static final statisticRemoteDataSource = StatisticReomteDataSource(dio: dio);
 
   // Repositories
   static final loginRepo = LoginRepo(loginRemoteDataSource);
@@ -59,12 +66,14 @@ class AppDependencies {
   static final complaintsRepo = ComplaintsRepository(complaintsRemoteDateSource);
   static final rolesRepository = RolesRepository(rolesRemoteDataSource);
   static final employeesRepo = ManagementEmployeeRepo(employeesRemoteDataSource);
+  static final statisticRepo = StatisticRepository(statisticRemoteDataSource);
 
   // UseCases (domain layer)
   static final loginUseCase = LoginUseCase(loginRepo);
   static final createEmailUseCase = CreateEmailUseCase(createEmailRepo);
   static final logoutUseCase = LogoutUseCase(loginRepo);
   static final complaintsUseCase = GetComplaintsUseCase(complaintsRepo);
+
 
   // roles
   static final getRolesUseCase = GetRolesUseCase(rolesRepository);
@@ -82,6 +91,9 @@ class AppDependencies {
 // permissions
   static final getPermissionsUseCase = GetPermissionsDetailsUseCase(rolesRepository);
   static final updateRolePermissionsUseCase = UpdateRolePermissionsUseCase(rolesRepository);
+
+  static final getStatisticUseCase = GetStatisticUseCase(statisticRepo);
+  static final downloadReportUseCase = DownloadReportUseCase(statisticRepo);
 
   // Bloc providers to be used in MultiBlocProvider
   static List<BlocProvider> blocProviders() {
@@ -126,10 +138,16 @@ class AppDependencies {
            deleteEmployeeUseCase,
           updateEmployeeUseCase
         ),
+
       ),
-
-
-
+      BlocProvider<StatisticsBloc>(
+        create: (_) => StatisticsBloc(
+            getStatisticUseCase
+        )..add(FetchStatisticsEvent()),
+      ),
+      BlocProvider<ReportsBloc>(
+        create: (_) => ReportsBloc(downloadReportUseCase),
+      ),
 
     ];
   }
