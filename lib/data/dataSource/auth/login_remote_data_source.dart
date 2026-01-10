@@ -38,9 +38,7 @@ class LoginRemoteDataSource implements BaseLoginRemoteDataSource {
         ),
       );
 
-      // -------------------------------------------------------
-      // ALWAYS convert response.data safely
-      // -------------------------------------------------------
+
       if (response.data is! Map) {
         throw ServerException(
           errorMessageModel: ErrorMessageModel.fromJson(
@@ -59,7 +57,7 @@ class LoginRemoteDataSource implements BaseLoginRemoteDataSource {
             Map<String, dynamic>.from(apiEnvelope.data!));
       }
 
-      // --------- ERROR PATH ----------
+
       throw ServerException(
         errorMessageModel: ErrorMessageModel.fromJson(map),
       );

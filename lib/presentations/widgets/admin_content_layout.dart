@@ -21,7 +21,7 @@ class AdminContentLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const AdminSidebar(), // Sidebar ثابت في كل الصفحات
+        const AdminSidebar(),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),

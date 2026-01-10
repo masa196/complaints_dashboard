@@ -1,4 +1,4 @@
-// lib/employee_dashboard/presentation/bloc/complaint_actions/complaint_actions_bloc.dart
+
 import 'package:bloc/bloc.dart';
 import '../../../../domain/use_cases/complaints/lock_complaint_usecase.dart';
 import '../../../../domain/use_cases/complaints/unlock_complaint_usecase.dart';
@@ -28,65 +28,85 @@ class ComplaintActionsBloc extends Bloc<ComplaintActionsEvent, ComplaintActionsS
 
   Future<void> _onLockRequested(LockComplaintRequested event, Emitter<ComplaintActionsState> emit) async {
     emit(ComplaintActionInProgress(action: ComplaintAction.locking, complaintId: event.id));
-    try {
-      final res = await lockUseCase.execute(event.id);
-      final sc = res['status_code'] is int ? res['status_code'] as int : int.tryParse(res['status_code']?.toString() ?? '') ?? 0;
-      final msg = res['message']?.toString() ?? '';
-      if (sc == 200) {
-        emit(ComplaintActionSuccess(action: ComplaintAction.locked, complaintId: event.id, message: msg, statusCode: sc));
-      } else {
-        emit(ComplaintActionFailure(action: ComplaintAction.locking, complaintId: event.id, message: msg, statusCode: sc));
-      }
-    } catch (e) {
-      emit(ComplaintActionFailure(action: ComplaintAction.locking, complaintId: event.id, message: e.toString(), statusCode: 0));
-    }
+
+    final result = await lockUseCase.execute(event.id);
+
+    result.fold(
+          (failure) => emit(ComplaintActionFailure(
+          action: ComplaintAction.locking,
+          complaintId: event.id,
+          message: failure.message,
+          statusCode: 0
+      )),
+          (res) => emit(ComplaintActionSuccess(
+          action: ComplaintAction.locked,
+          complaintId: event.id,
+          message: res['message']?.toString() ?? 'تم القفل بنجاح',
+          statusCode: 200
+      )),
+    );
   }
 
   Future<void> _onUpdateStatusRequested(UpdateStatusRequested event, Emitter<ComplaintActionsState> emit) async {
     emit(ComplaintActionInProgress(action: ComplaintAction.updatingStatus, complaintId: event.id));
-    try {
-      final res = await updateStatusUseCase.execute(event.id, event.status);
-      final sc = res['status_code'] is int ? res['status_code'] as int : int.tryParse(res['status_code']?.toString() ?? '') ?? 0;
-      final msg = res['message']?.toString() ?? '';
-      if (sc == 200) {
-        emit(ComplaintActionSuccess(action: ComplaintAction.updatedStatus, complaintId: event.id, message: msg, statusCode: sc));
-      } else {
-        emit(ComplaintActionFailure(action: ComplaintAction.updatingStatus, complaintId: event.id, message: msg, statusCode: sc));
-      }
-    } catch (e) {
-      emit(ComplaintActionFailure(action: ComplaintAction.updatingStatus, complaintId: event.id, message: e.toString(), statusCode: 0));
-    }
+
+    final result = await updateStatusUseCase.execute(event.id, event.status);
+
+    result.fold(
+          (failure) => emit(ComplaintActionFailure(
+          action: ComplaintAction.updatingStatus,
+          complaintId: event.id,
+          message: failure.message,
+          statusCode: 0
+      )),
+          (res) => emit(ComplaintActionSuccess(
+          action: ComplaintAction.updatedStatus,
+          complaintId: event.id,
+          message: res['message']?.toString() ?? 'تم تحديث الحالة',
+          statusCode: 200
+      )),
+    );
   }
 
   Future<void> _onRequestInfoRequested(RequestInfoRequested event, Emitter<ComplaintActionsState> emit) async {
     emit(ComplaintActionInProgress(action: ComplaintAction.requestingInfo, complaintId: event.id));
-    try {
-      final res = await requestInfoUseCase.execute(event.id, event.requestText);
-      final sc = res['status_code'] is int ? res['status_code'] as int : int.tryParse(res['status_code']?.toString() ?? '') ?? 0;
-      final msg = res['message']?.toString() ?? '';
-      if (sc == 200 || sc == 201) {
-        emit(ComplaintActionSuccess(action: ComplaintAction.requestedInfo, complaintId: event.id, message: msg, statusCode: sc));
-      } else {
-        emit(ComplaintActionFailure(action: ComplaintAction.requestingInfo, complaintId: event.id, message: msg, statusCode: sc));
-      }
-    } catch (e) {
-      emit(ComplaintActionFailure(action: ComplaintAction.requestingInfo, complaintId: event.id, message: e.toString(), statusCode: 0));
-    }
+
+    final result = await requestInfoUseCase.execute(event.id, event.requestText);
+
+    result.fold(
+          (failure) => emit(ComplaintActionFailure(
+          action: ComplaintAction.requestingInfo,
+          complaintId: event.id,
+          message: failure.message,
+          statusCode: 0
+      )),
+          (res) => emit(ComplaintActionSuccess(
+          action: ComplaintAction.requestedInfo,
+          complaintId: event.id,
+          message: res['message']?.toString() ?? 'تم طلب المعلومات',
+          statusCode: 200
+      )),
+    );
   }
 
   Future<void> _onUnlockRequested(UnlockComplaintRequested event, Emitter<ComplaintActionsState> emit) async {
     emit(ComplaintActionInProgress(action: ComplaintAction.unlocking, complaintId: event.id));
-    try {
-      final res = await unlockUseCase.execute(event.id);
-      final sc = res['status_code'] is int ? res['status_code'] as int : int.tryParse(res['status_code']?.toString() ?? '') ?? 0;
-      final msg = res['message']?.toString() ?? '';
-      if (sc == 200) {
-        emit(ComplaintActionSuccess(action: ComplaintAction.unlocked, complaintId: event.id, message: msg, statusCode: sc));
-      } else {
-        emit(ComplaintActionFailure(action: ComplaintAction.unlocking, complaintId: event.id, message: msg, statusCode: sc));
-      }
-    } catch (e) {
-      emit(ComplaintActionFailure(action: ComplaintAction.unlocking, complaintId: event.id, message: e.toString(), statusCode: 0));
-    }
+
+    final result = await unlockUseCase.execute(event.id);
+
+    result.fold(
+          (failure) => emit(ComplaintActionFailure(
+          action: ComplaintAction.unlocking,
+          complaintId: event.id,
+          message: failure.message,
+          statusCode: 0
+      )),
+          (res) => emit(ComplaintActionSuccess(
+          action: ComplaintAction.unlocked,
+          complaintId: event.id,
+          message: res['message']?.toString() ?? 'تم إلغاء القفل',
+          statusCode: 200
+      )),
+    );
   }
 }

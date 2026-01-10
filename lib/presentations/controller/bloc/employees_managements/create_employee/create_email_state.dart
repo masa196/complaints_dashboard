@@ -1,7 +1,5 @@
-
 import 'package:equatable/equatable.dart';
 import '../../../../../domain/entities/auth/admin.dart';
-
 
 abstract class CreateEmailState extends Equatable {
   @override
@@ -16,13 +14,11 @@ class Created extends CreateEmailState {
   final Admin admin;
   final String token;
 
-
   Created(this.admin, this.token);
 
   @override
   List<Object?> get props => [admin, token];
 }
-
 
 class CreateEmailFailure extends CreateEmailState {
   final String message;
@@ -31,6 +27,3 @@ class CreateEmailFailure extends CreateEmailState {
   @override
   List<Object?> get props => [message];
 }
-
-
-

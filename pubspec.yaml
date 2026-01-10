@@ -45,6 +45,7 @@ dependencies:
   awesome_snackbar_content: ^0.1.8
   fl_chart: ^1.1.1
   web: ^1.1.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

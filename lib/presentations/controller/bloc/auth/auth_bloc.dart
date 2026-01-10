@@ -1,4 +1,4 @@
-// lib/auth_admin/presentations/controllers/block/auth_bloc.dart
+
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -52,7 +52,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await result.fold(
           (failure) async {
         if (failure is ServerFailure && failure.retryAfterSeconds != null) {
-          // بدلاً من emit مباشرة، نرسل حدث بدء العد التنازلي
           add(StartCooldown(seconds: failure.retryAfterSeconds!, message: failure.message));
         } else {
           emit(AuthFailure(message: failure.message));
@@ -97,14 +96,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onStartCooldown(StartCooldown event, Emitter<AuthState> emit) async {
-    _cooldownTimer?.cancel(); // إلغاء أي تايمر سابق
+    _cooldownTimer?.cancel();
     _currentSeconds = event.seconds;
     _cooldownMessage = event.message;
 
     emit(AuthCooldown(secondsRemaining: _currentSeconds, message: _cooldownMessage));
 
     _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      // التحقق من أن الـ Bloc لم يُغلق قبل إضافة الحدث
       if (!isClosed) {
         add(DecrementCooldown());
       } else {
@@ -121,7 +119,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _cooldownTimer?.cancel();
       _cooldownTimer = null;
       _currentSeconds = 0;
-      emit(AuthUnauthenticated()); // العودة للحالة الطبيعية بعد انتهاء الوقت
+      emit(AuthUnauthenticated());
     }
   }
 

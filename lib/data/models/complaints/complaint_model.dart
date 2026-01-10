@@ -1,4 +1,6 @@
 // lib/employee_dashboard/data/models/complaint_model.dart
+import 'package:untitled/core/constants/api_constants.dart';
+
 import '../../../domain/entities/compaints/complaint.dart';
 
 class ComplaintModel extends Complaint {
@@ -52,10 +54,14 @@ class ComplaintImageModel extends ComplaintImage {
   });
 
   factory ComplaintImageModel.fromJson(Map<String, dynamic> json) {
+    String rawPath = json['file_path'] as String? ?? '';
+    String fullPath = rawPath.isNotEmpty
+        ? "${ApiConstants.baseUrl}/storage/$rawPath"
+        : "";
     return ComplaintImageModel(
       id: json['id'] is int ? json['id'] as int : int.parse(json['id'].toString()),
       complaintId: json['complaint_id'] is int ? json['complaint_id'] as int : int.parse(json['complaint_id'].toString()),
-      filePath: json['file_path'] as String? ?? '',
+      filePath: fullPath,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );

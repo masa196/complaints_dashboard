@@ -31,7 +31,7 @@ class EmployeesBloc extends Bloc<IEmployeesEvent, EmployeesState> {
 
   int currentPage = 1;
 
-  // دالة مساعدة لجلب البيانات دون تكرار الكود
+
   Future<void> _fetchCurrentPage(Emitter<EmployeesState> emit) async {
     final result = await getEmployeesUseCase(currentPage);
     result.fold(
@@ -70,7 +70,6 @@ class EmployeesBloc extends Bloc<IEmployeesEvent, EmployeesState> {
           (failure) async => emit(EmployeesFailed(failure.message)),
           (_) async {
         emit(const EmployeeDeleteSuccess('تم حذف الموظف بنجاح'));
-        // جلب البيانات فوراً لتحديث الجدول
         await _fetchCurrentPage(emit);
       },
     );
@@ -83,14 +82,12 @@ class EmployeesBloc extends Bloc<IEmployeesEvent, EmployeesState> {
           (failure) async => emit(EmployeesFailed(failure.message)),
           (_) async {
         emit(const EmployeeUpdateSuccess('تم تعديل المستخدم بنجاح'));
-        // جلب البيانات فوراً لتحديث الجدول
         await _fetchCurrentPage(emit);
       },
     );
   }
 
   FutureOr<void> _onRefreshEmployees(RefreshEmployees event, Emitter<EmployeesState> emit) async {
-    // تنفيذ الجلب المباشر لضمان استقرار الواجهة
     await _fetchCurrentPage(emit);
   }
 }

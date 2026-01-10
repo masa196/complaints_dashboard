@@ -1,5 +1,3 @@
-// lib/auth_admin/presentations/controllers/cubit/employees_management/create_employees/create_email_cubit.dart
-
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/employees_managements/create_employee/create_email_bloc.dart';
@@ -35,21 +33,11 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
     emit(state.copyWith(email: value, fieldErrors: newFieldErrors));
   }
 
-  // التعديل هنا: نضمن مسح الخطأ وقبول القيمة الفارغة (null)
   void setGovernmentAgencyId(int? id) {
     final newFieldErrors = {...state.fieldErrors}..remove('government_agency_id');
-    // نحدث الـ state مع مسح الخطأ مباشرة
-    emit(CreateEmailStateCubit(
-      name: state.name,
-      email: state.email,
-      password: state.password,
-      passwordConfirmation: state.passwordConfirmation,
-      governmentAgencyId: id, // قد يكون null هنا
-      showErrors: state.showErrors,
+    emit(state.copyWith(
+      governmentAgencyId: id,
       fieldErrors: newFieldErrors,
-      submitting: state.submitting,
-      obscurePassword: state.obscurePassword,
-      obscureConfirmation: state.obscureConfirmation,
     ));
   }
 
@@ -82,11 +70,7 @@ class CreateEmailCubit extends Cubit<CreateEmailStateCubit> {
 
     if (name.isEmpty) errors['name'] = 'الرجاء إدخال الاسم الكامل';
     if (email.isEmpty) errors['email'] = 'الرجاء إدخال البريد الإلكتروني';
-    if (govId == null) {
-      errors['government_agency_id'] = 'الرجاء إدخال رقم الوزارة';
-    } else if (govId < 1 || govId > 5) {
-      errors['government_agency_id'] = 'يجب أن يكون الرقم بين 1 و 5 فقط';
-    }
+    if (govId == null) errors['government_agency_id'] = 'الرجاء اختيار الوزارة';
     if (pwd.isEmpty) errors['password'] = 'الرجاء إدخال كلمة السر';
     if (pwdConf != pwd) errors['password_confirmation'] = 'كلمة السر غير متطابقة';
 

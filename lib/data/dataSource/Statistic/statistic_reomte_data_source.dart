@@ -1,7 +1,8 @@
-import 'dart:typed_data'; // الاستيراد الناقص لحل مشكلة Uint8List
+import 'dart:typed_data';
 import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 import 'package:dio/dio.dart';
+import 'dart:convert';
 import '../../../core/constants/api_constants.dart';
 import '../../models/statistics/statistics_model.dart';
 import '../../../core/error/exceptions.dart';
@@ -14,15 +15,30 @@ abstract class BaseStatisticRemoteDataSource {
 
 class StatisticReomteDataSource implements BaseStatisticRemoteDataSource {
   final Dio dio;
-  StatisticReomteDataSource({required this.dio});
+  StatisticReomteDataSource({required this.dio}) {
+    this.dio.options.headers.addAll({
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    });
+    this.dio.options.validateStatus = (status) => true;
+  }
+
+  dynamic _processJsonResponse(Response response) {
+    if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
+      if (response.data is Map) return response.data;
+    }
+    throw ServerException(errorMessageModel: ErrorMessageModel.handleResponse(response));
+  }
 
   @override
   Future<StatisticsModel> getStatistic() async {
-    final response = await dio.get('${ApiConstants.baseUrl}/api/admin/dashboard/stats');
-    if (response.statusCode == 200) {
-      return StatisticsModel.fromJson(response.data);
-    } else {
-      throw ServerException(errorMessageModel: ErrorMessageModel.fromJson(response.data));
+    try {
+      final response = await dio.get('${ApiConstants.baseUrl}/api/admin/dashboard/stats');
+      final data = _processJsonResponse(response);
+      return StatisticsModel.fromJson(data);
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(errorMessageModel: ErrorMessageModel.fromDioError(e));
     }
   }
 
@@ -32,43 +48,48 @@ class StatisticReomteDataSource implements BaseStatisticRemoteDataSource {
         ? '/api/admin/reports/complaints/csv'
         : '/api/admin/reports/complaints/pdf';
 
-    final response = await dio.get(
-      '${ApiConstants.baseUrl}$endpoint',
-      options: Options(responseType: ResponseType.bytes),
-    );
+    try {
+      final response = await dio.get(
+        '${ApiConstants.baseUrl}$endpoint',
+        options: Options(responseType: ResponseType.bytes),
+      );
 
-    if (response.statusCode == 200) {
-      // التأكد من أن البيانات القادمة هي قائمة من الـ bytes
-      final List<int> bytes = response.data as List<int>;
-      _triggerFileDownload(bytes, type);
-    } else {
-      throw ServerException(errorMessageModel: ErrorMessageModel.fromJson(response.data));
+      if (response.statusCode == 200) {
+        final List<int> bytes = response.data as List<int>;
+        _triggerFileDownload(bytes, type);
+      } else {
+
+        try {
+          final String decoded = utf8.decode(response.data as List<int>);
+          final mockResponse = Response(
+            requestOptions: response.requestOptions,
+            data: decoded.contains('{') ? jsonDecode(decoded) : decoded,
+            statusCode: response.statusCode,
+          );
+          throw ServerException(errorMessageModel: ErrorMessageModel.handleResponse(mockResponse));
+        } catch (e) {
+          if (e is ServerException) rethrow;
+          throw ServerException(
+            errorMessageModel: ErrorMessageModel(message: "فشل تحميل الملف (${response.statusCode})"),
+          );
+        }
+      }
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(errorMessageModel: ErrorMessageModel.fromDioError(e));
     }
   }
 
   void _triggerFileDownload(List<int> bytes, String type) {
-    // 1. تحويل القائمة إلى Uint8List ثم إلى JS Uint8Array
     final uint8list = Uint8List.fromList(bytes);
     final uint8array = uint8list.toJS;
-
-    // 2. تحديد نوع الـ MIME
     final mimeType = type == 'pdf' ? 'application/pdf' : 'text/csv';
 
-    // 3. إنشاء Blob (متوافق مع package:web)
-    final blob = web.Blob(
-        [uint8array].toJS,
-        web.BlobPropertyBag(type: mimeType)
-    );
-
-    // 4. توليد رابط تحميل مؤقت
+    final blob = web.Blob([uint8array].toJS, web.BlobPropertyBag(type: mimeType));
     final url = web.URL.createObjectURL(blob);
-
-    // 5. إنشاء عنصر a (Anchor) مخفي للتحميل
     final anchor = web.document.createElement('a') as web.HTMLAnchorElement;
     anchor.href = url;
     anchor.download = "report_${DateTime.now().millisecondsSinceEpoch}.$type";
-
-    // 6. تفعيل التحميل وحذف الرابط من الذاكرة
     anchor.click();
     web.URL.revokeObjectURL(url);
   }

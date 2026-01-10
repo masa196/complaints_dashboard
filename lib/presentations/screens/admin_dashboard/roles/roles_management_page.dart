@@ -1,7 +1,5 @@
-// lib/auth_admin/presentations/screens/roles/roles_management_page.dart
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../presentations/screens/admin_dashboard/admin_panel_app.dart';
 import 'widgets/role_details_widget.dart';
 import 'widgets/roles_list_widget.dart';
 
@@ -17,19 +15,25 @@ class RolesManagementPage extends StatelessWidget {
           minHeight: MediaQuery.of(context).size.height - 32,
         ),
         decoration: BoxDecoration(
-          color: AppColors.backGround,
+          color: AppColors.c4,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.c5.withOpacity(0.5)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
             Text(
-              'Roles & Permissions',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              'الأدوار والصلاحيات',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: AppColors.c1,
+              ),
             ),
             SizedBox(height: 8),
             Text(
-              'Manage system roles and control access permissions',
+              'يمكنك إدارة أدوار المستخدمين هنا، وتعيين الصلاحيات أو إنشاء أدوار جديدة للنظام.',
+              style: TextStyle(color: AppColors.c6),
             ),
             SizedBox(height: 16),
 

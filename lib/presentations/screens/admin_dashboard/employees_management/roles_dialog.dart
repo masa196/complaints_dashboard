@@ -31,7 +31,6 @@ class _RolesDialogState extends State<RolesDialog> {
 
   @override
   Widget build(BuildContext context) {
-    // تخزين المراجع قبل العمليات الـ async
     final employeesBloc = context.read<EmployeesBloc>();
     final rolesBloc = context.read<RolesBloc>();
 

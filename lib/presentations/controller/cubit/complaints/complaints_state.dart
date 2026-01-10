@@ -31,7 +31,7 @@ class ComplaintsState {
     return ComplaintsState(
       status: status ?? this.status,
       complaints: complaints ?? this.complaints,
-      message: message ?? this.message,
+      message: message ?? this.message, // يسمح بمسح الرسالة بـ null
       filterStatus: filterStatus ?? this.filterStatus,
       currentPage: currentPage ?? this.currentPage,
       lastPage: lastPage ?? this.lastPage,
@@ -39,9 +39,8 @@ class ComplaintsState {
   }
 
   List<Complaint> get filteredComplaints {
+    if (complaints.isEmpty) return [];
     if (filterStatus == 'all') return complaints;
-    return complaints
-        .where((c) => c.status.toLowerCase() == filterStatus.toLowerCase())
-        .toList();
+    return complaints.where((c) => c.status.toLowerCase() == filterStatus.toLowerCase()).toList();
   }
 }

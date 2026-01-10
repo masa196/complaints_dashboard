@@ -1,3 +1,5 @@
+// lib/presentations/screens/admin_dashboard/admin_sidebar.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../controller/bloc/auth/auth_bloc.dart';
@@ -21,6 +23,7 @@ class AdminSidebar extends StatelessWidget {
         return Container(
           width: 260,
           color: sidebarBg,
+          // 💡 ضمان محاذاة محتويات الـ Sidebar لليمين
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -37,8 +40,10 @@ class AdminSidebar extends StatelessWidget {
                     const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Admin Panel', style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
-                        Text('System Control', style: TextStyle(color: textSecondary, fontSize: 12)),
+                        Text('لوحة التحكم',
+                            style: TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text('نظام الإدارة الأساسي',
+                            style: TextStyle(color: textSecondary, fontSize: 12)),
                       ],
                     )
                   ],
@@ -53,7 +58,7 @@ class AdminSidebar extends StatelessWidget {
               ),
               _buildSidebarItem(
                 icon: Icons.person_add,
-                title: 'إنشاء حساب',
+                title: 'إنشاء حساب موظف',
                 color: textSecondary,
                 isSelected: currentPage == AdminPage.createEmployee,
                 onTap: navigationCubit.goToCreateEmployee,
@@ -72,11 +77,26 @@ class AdminSidebar extends StatelessWidget {
                 isSelected: currentPage == AdminPage.employeesList,
                 onTap: navigationCubit.goToEmployeesList,
               ),
+              _buildSidebarItem(
+                icon: Icons.history_rounded,
+                title: 'سجلات التتبع',
+                color: textSecondary,
+                isSelected: currentPage == AdminPage.auditLogs,
+                onTap: navigationCubit.goToAuditLogs,
+              ),
+              _buildSidebarItem(
+                icon: Icons.assignment_late_outlined,
+                title: 'عرض الشكاوي',
+                color: textSecondary,
+                isSelected: currentPage == AdminPage.complaintsShow,
+                onTap: navigationCubit.goToComplaintsShow,
+              ),
               const Spacer(),
               _buildLogoutButton(context),
               const SizedBox(height: 20),
             ],
           ),
+
         );
       },
     );
@@ -91,29 +111,44 @@ class AdminSidebar extends StatelessWidget {
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: isSelected ? color : Colors.transparent),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: isSelected ? Colors.white : color),
-              const SizedBox(width: 12),
-              Text(title,
-                  style: TextStyle(
-                      color: isSelected ? Colors.white : color,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 14
-                  )
+      // 💡 استخدم Material هنا للسماح بتأثيرات الـ InkWell بالظهور
+      child: Material(
+        color: Colors.transparent, // اجعل الخلفية شفافة
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(10),
+          // 💡 تغيير لون الـ Hover للون مناسب بدلاً من الأحمر الصريح
+          hoverColor: color.withOpacity(0.1),
+          splashColor: color.withOpacity(0.2), // تأثير الضغطة
+          highlightColor: Colors.transparent,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              // إذا لم يكن مختاراً، اجعل اللون شفافاً تماماً ليظهر لون الـ Hover من الـ InkWell
+              color: isSelected ? color.withOpacity(0.2) : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected ? color : Colors.transparent,
               ),
-            ],
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? Colors.white : color.withOpacity(0.8),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : color.withOpacity(0.9),
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

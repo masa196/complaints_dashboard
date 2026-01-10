@@ -1,5 +1,5 @@
-// lib/core/network/error_message_model.dart
 import 'package:equatable/equatable.dart';
+import 'package:dio/dio.dart';
 
 class ErrorMessageModel extends Equatable {
   final String message;
@@ -12,78 +12,56 @@ class ErrorMessageModel extends Equatable {
     this.retryAfterSeconds,
   });
 
+  static ErrorMessageModel fromDioError(dynamic e) {
+    if (e is! DioException) return const ErrorMessageModel(message: "حدث خطأ غير متوقع");
+    if (e.response != null) return ErrorMessageModel.handleResponse(e.response!);
+
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout: return const ErrorMessageModel(message: "انتهت مهلة الاتصال بالسيرفر");
+      case DioExceptionType.receiveTimeout: return const ErrorMessageModel(message: "السيرفر يستغرق وقتاً طويلاً للرد");
+      case DioExceptionType.connectionError: return const ErrorMessageModel(message: "لا يوجد اتصال بالإنترنت، يرجى التحقق من الشبكة");
+      default: return const ErrorMessageModel(message: "حدث خطأ أثناء الاتصال بالسيرفر");
+    }
+  }
+
+  static ErrorMessageModel handleResponse(Response response) {
+    if (response.data is Map) {
+      return ErrorMessageModel.fromJson(Map<String, dynamic>.from(response.data));
+    } else {
+      return ErrorMessageModel.fromHtml(response.data.toString());
+    }
+  }
+
   factory ErrorMessageModel.fromJson(Map<String, dynamic> json) {
     String msg = "";
     Map<String, dynamic> extractedErrors = {};
     int? retrySec;
 
-    // -------------------------------------------------------------------
-    // 1. محاولة قراءة message مباشرة
-    // -------------------------------------------------------------------
-    if (json["message"] is String) {
+    if (json["message"] != null) {
       msg = json["message"].toString().trim();
+    } else if (json["error"] != null) {
+      msg = json["error"].toString().trim();
     }
 
-    // استخراج عدد الثواني من الرسالة في حالة 429
-    if (json["status_code"] == 429 && msg.contains("seconds")) {
-      final regex = RegExp(r'(\d+)\s*seconds');
+
+    bool isRateLimit = msg.toLowerCase().contains("too many") ||
+        msg.toLowerCase().contains("attempts") ||
+        msg.toLowerCase().contains("requests");
+
+    if (isRateLimit && msg.contains("seconds")) {
+      final regex = RegExp(r'(\d+)');
       final match = regex.firstMatch(msg);
-      if (match != null) {
-        retrySec = int.tryParse(match.group(1)!);
-      }
+      if (match != null) retrySec = int.tryParse(match.group(1)!);
     }
 
-
-    // -------------------------------------------------------------------
-    // 2. محاولة قراءة errors الرسمية (Laravel style)
-    // -------------------------------------------------------------------
     if (json["errors"] is Map) {
       extractedErrors = Map<String, dynamic>.from(json["errors"]);
     }
 
-    // -------------------------------------------------------------------
-    // 3. إذا كانت errors الرسمية غير موجودة:
-    //    قد يعيد السيرفر المفتاح هكذا:
-    //    "errors": "Incorrect password"
-    // -------------------------------------------------------------------
-    if (json["errors"] is String) {
-      extractedErrors["general"] = json["errors"];
-    }
-
-    // -------------------------------------------------------------------
-    // 4. Laravel قد يعيد error بدون message/errors
-    // -------------------------------------------------------------------
-    if (json["error"] is String) {
-      extractedErrors["general"] = json["error"];
-    }
-
-    // -------------------------------------------------------------------
-    // 5. إذا لم يوجد errors → نبحث عن مفاتيح خطأ مباشرة مثل:
-    //    { "email": "Email not found" }
-    //    { "password": ["Incorrect password"] }
-    // -------------------------------------------------------------------
-    if (extractedErrors.isEmpty) {
-      json.forEach((key, value) {
-        if (key != "success" &&
-            key != "message" &&
-            key != "data" &&
-            key != "status_code" &&
-            key != "errors") {
-          extractedErrors[key] = value;
-        }
-      });
-    }
-
-    // -------------------------------------------------------------------
-    // 6. إذا وجدنا errors → نتجاهل الـ message
-    // -------------------------------------------------------------------
-    if (extractedErrors.isNotEmpty) {
+    if (extractedErrors.isNotEmpty && !isRateLimit) {
       msg = "";
     }
 
-    // -------------------------------------------------------------------
-    // 7. fallback message إذا كل شيء فارغ
-    // -------------------------------------------------------------------
     if (msg.isEmpty && extractedErrors.isEmpty) {
       msg = "حدث خطأ غير معروف";
     }
@@ -95,29 +73,26 @@ class ErrorMessageModel extends Equatable {
     );
   }
 
-  // -------------------------------------------------------------------
-  // 🔥 formatter النهائي الموحد لجميع الأخطاء
-  // -------------------------------------------------------------------
+  factory ErrorMessageModel.fromHtml(String htmlBody) {
+    if (htmlBody.contains("Too Many Requests") || htmlBody.contains("429")) {
+      return const ErrorMessageModel(message: "Too Many Attempts. Please try again later.");
+    }
+    final match = RegExp(r'<title>(.*?)</title>').firstMatch(htmlBody);
+    if (match != null && match.group(1) != null) {
+      return ErrorMessageModel(message: match.group(1)!);
+    }
+    return const ErrorMessageModel(message: "استجابة غير صالحة من السيرفر");
+  }
+
   String userFriendlyMessage() {
     if (errors != null && errors!.isNotEmpty) {
       final sb = StringBuffer();
-
       errors!.forEach((key, value) {
-        // قائمة رسائل
-        if (value is List) {
-          for (var v in value) {
-            sb.writeln("- $v");
-          }
-        }
-        // رسالة واحدة
-        else {
-          sb.writeln("- $value");
-        }
+        if (value is List) sb.writeln(value.join("\n"));
+        else sb.writeln("- $value");
       });
-
       return sb.toString().trim();
     }
-
     return message.isNotEmpty ? message : "حدث خطأ غير معروف";
   }
 

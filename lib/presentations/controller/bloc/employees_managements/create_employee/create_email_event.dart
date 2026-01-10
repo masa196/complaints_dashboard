@@ -1,5 +1,3 @@
-
-
 import 'package:equatable/equatable.dart';
 
 abstract class CreateEmailEvent extends Equatable {
@@ -9,6 +7,9 @@ abstract class CreateEmailEvent extends Equatable {
 
 class AppStarted extends CreateEmailEvent {}
 
+
+class ResetCreateEmailEvent extends CreateEmailEvent {}
+
 class CreateEmailRequested extends CreateEmailEvent {
   final String name;
   final String email;
@@ -16,11 +17,9 @@ class CreateEmailRequested extends CreateEmailEvent {
   final String passwordConfirmation;
   final int governmentAgencyId;
 
-
   CreateEmailRequested(this.name, this.email, this.password,
-      this.passwordConfirmation,this.governmentAgencyId);
+      this.passwordConfirmation, this.governmentAgencyId);
 
   @override
-  List<Object?> get props => [name,email, password,passwordConfirmation,governmentAgencyId];
+  List<Object?> get props => [name, email, password, passwordConfirmation, governmentAgencyId];
 }
-

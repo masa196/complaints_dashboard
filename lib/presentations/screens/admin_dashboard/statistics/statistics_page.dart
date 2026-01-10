@@ -133,7 +133,7 @@ class StatisticsPage extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: AppColors.grey, fontSize: 14)),
+                Text(title, style: const TextStyle(color: AppColors.grey, fontSize: 17)),
                 const SizedBox(height: 4),
                 Text(value, style: const TextStyle(color: AppColors.c1, fontSize: 28, fontWeight: FontWeight.bold)),
               ],
@@ -303,7 +303,7 @@ class _PieChartWidget extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'new': return AppColors.c2;
+      case 'new': return Colors.green;
       case 'resolved': return AppColors.c5;
       case 'rejected': return Colors.redAccent;
       case 'in_progress': return AppColors.c6;

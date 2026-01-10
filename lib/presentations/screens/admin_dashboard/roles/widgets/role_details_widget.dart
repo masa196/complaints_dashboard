@@ -11,162 +11,140 @@ class RoleDetailsWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RoleDetailsBloc, RoleDetailsState>(
-      builder: (context, state) {
-        if (state is RoleDetailsInitial) return const _EmptyState();
-        if (state is RoleDetailsLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is RoleDetailsFailed) return Center(child: Text(state.message));
+    return BlocListener<RolesBloc, RolesState>(
+      listenWhen: (previous, current) => current is RoleDeleteSuccess,
+      listener: (context, state) => context.read<RoleDetailsBloc>().add(ClearRoleDetailsEvent()),
+      child: BlocBuilder<RoleDetailsBloc, RoleDetailsState>(
+        builder: (context, state) {
+          if (state is RoleDetailsInitial) return const _EmptyState();
+          if (state is RoleDetailsLoading) return const Center(child: CircularProgressIndicator(color: AppColors.c6));
+          if (state is RoleDetailsFailed) return Center(child: Text(state.message, style: const TextStyle(color: Colors.redAccent)));
 
-        if (state is RoleDetailsLoaded) {
-          final role = state.role.data!;
-          final permissions = role.permissions ?? [];
+          if (state is RoleDetailsLoaded) {
+            final role = state.role.data!;
+            final permissions = role.permissions ?? [];
 
-          return Card(
-            elevation: 3,
-            shadowColor: AppColors.blackShadow,
-            shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            color: AppColors.white,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            return Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: AppColors.c5,
+              child: Stack(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        role.name ?? '',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(color: AppColors.c4),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () {
-                          _showDeleteDialog(
-                            context,
-                            roleId: role.id!,
-                            roleName: role.name ?? '',
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Role ID: ${role.id}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: AppColors.greyText),
-                  ),
-                  const Divider(height: 32),
-                  Text(
-                    'Permissions',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: AppColors.blackText),
-                  ),
-                  const SizedBox(height: 12),
-                  if (permissions.isEmpty)
-                    const Text('No permissions assigned'),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: permissions
-                        .map(
-                          (p) => Chip(
-                        label: Text(
-                          p.name ?? '',
-                          style: const TextStyle(color: AppColors.white),
-                        ),
-                        backgroundColor: AppColors.c3,
-                      ),
-                    )
-                        .toList(),
-                  ),
-                  const SizedBox(height: 20),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton.icon(
-                      style:
-                      ElevatedButton.styleFrom(backgroundColor: AppColors.c4),
-                      icon: const Icon(Icons.edit, color: AppColors.white),
-                      label: const Text(
-                        'Edit Permissions',
-                        style: TextStyle(color: AppColors.white),
-                      ),
-                      onPressed: () {
-                        final initialIds = role.permissions
-                            ?.where((e) => e.id != null)
-                            .map((e) => e.id!)
-                            .toSet() ??
-                            {};
-
-                        showDialog(
-                          context: context,
-                          builder: (_) => MultiBlocProvider(
-                            providers: [
-                              BlocProvider.value(
-                                value: context.read<RoleDetailsBloc>(),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                  role.name ?? '',
+                                  style: const TextStyle(color: AppColors.c1, fontSize: 20, fontWeight: FontWeight.bold)
                               ),
-                              BlocProvider(
-                                create: (_) =>
-                                    EditPermissionsCubit(initialSelectedIds: initialIds),
-                              ),
-                            ],
-                            child: EditPermissionsDialog(
-                              role: role,
-                              allPermissions: state.allPermissions,
                             ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 22),
+                              onPressed: () => _showDeleteDialog(context, roleId: role.id!, roleName: role.name ?? ''),
+                            ),
+                            const SizedBox(width: 30),
+                          ],
+                        ),
+                        Text('id: ${role.id}', style: const TextStyle(color: AppColors.c1,  fontSize: 12)),
+                        const Divider(height: 32, color: AppColors.c4, thickness: 1),
+                        const Text('الصلاحيات المتاحة', style: TextStyle(color: AppColors.c1, fontWeight: FontWeight.bold, fontSize: 16)), // تكبير عنوان القسم قليلاً
+                        const SizedBox(height: 16), // زيادة المسافة تحت العنوان
+                        if (permissions.isEmpty)
+                          const Text('لا توجد صلاحيات معينة لهذا الدور', style: TextStyle(color: AppColors.c6)),
+
+                        // 💡 تم تعديل الـ Wrap والـ Chip لتكبير الخط
+                        Wrap(
+                          spacing: 10, // زيادة المسافة الأفقية لتناسب الخط الأكبر
+                          runSpacing: 10, // زيادة المسافة الرأسية
+                          children: permissions.map((p) => Chip(
+                            label: Text(
+                              p.name ?? '',
+                              style: const TextStyle(
+                                color: AppColors.c1,
+                                fontSize: 14, // ⬅️ تكبير الخط من 11 إلى 14
+                                fontWeight: FontWeight.w500, // زيادة سماكة الخط للوضوح
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // زيادة الحشو الداخلي
+                            backgroundColor: AppColors.c4,
+                            side: BorderSide(color: AppColors.c1.withOpacity(0.2)),
+                          )).toList(),
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.c1,
+                              foregroundColor: AppColors.c3,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              elevation: 0,
+                            ),
+                            icon: const Icon(Icons.edit_outlined, size: 18),
+                            label: const Text('تعديل صلاحيات الوصول', style: TextStyle(fontWeight: FontWeight.bold)),
+                            onPressed: () {
+                              final initialIds = role.permissions?.where((e) => e.id != null).map((e) => e.id!).toSet() ?? {};
+                              showDialog(
+                                context: context,
+                                builder: (_) => MultiBlocProvider(
+                                  providers: [
+                                    BlocProvider.value(value: context.read<RoleDetailsBloc>()),
+                                    BlocProvider(create: (_) => EditPermissionsCubit(initialSelectedIds: initialIds)),
+                                  ],
+                                  child: EditPermissionsDialog(role: role, allPermissions: state.allPermissions),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
+                        ),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: AppColors.c1),
+                      onPressed: () => context.read<RoleDetailsBloc>().add(ClearRoleDetailsEvent()),
                     ),
                   ),
                 ],
               ),
-            ),
-          );
-        }
-        return const SizedBox();
-      },
+            );
+          }
+          return const SizedBox();
+        },
+      ),
     );
   }
 
-  void _showDeleteDialog(
-      BuildContext context, {
-        required int roleId,
-        required String roleName,
-      }) {
+  void _showDeleteDialog(BuildContext context, {required int roleId, required String roleName}) {
+    final rolesBloc = context.read<RolesBloc>();
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Role'),
-        content: Text('Are you sure you want to delete "$roleName"?'),
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.c4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text('حذف الدور', style: TextStyle(color: AppColors.c1)),
+        content: Text('هل أنت متأكد من حذف الدور "$roleName"؟', style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('إلغاء', style: TextStyle(color: AppColors.c6))
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () {
-              final rolesBloc = context.read<RolesBloc>();
-              final detailsBloc = context.read<RoleDetailsBloc>();
               rolesBloc.add(DeleteRoleEvent(roleId));
-              detailsBloc.add(ClearRoleDetailsEvent());
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
             },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.white),
-            ),
+            child: const Text('تأكيد الحذف', style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),
@@ -176,16 +154,28 @@ class RoleDetailsWidget extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
-
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: AppColors.c5,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: const Center(
         child: Padding(
           padding: EdgeInsets.all(24),
-          child: Text('Select a roles to view details'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.touch_app_outlined, color: AppColors.c1, size: 40),
+              SizedBox(height: 16),
+              Text(
+                  'اختر دوراً من القائمة لعرض التفاصيل',
+                  style: TextStyle(color: AppColors.c1)
+              ),
+            ],
+          ),
         ),
       ),
     );

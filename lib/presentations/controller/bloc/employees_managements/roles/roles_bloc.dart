@@ -56,13 +56,22 @@ class RolesBloc extends Bloc<RolesEvent, RolesState> {
   }
 
 
-  Future<void> _onDeleteRole(DeleteRoleEvent event, Emitter<RolesState> emit,) async {
-    emit(RolesLoading());
+  Future<void> _onDeleteRole(DeleteRoleEvent event, Emitter<RolesState> emit) async {
+    final currentState = state;
 
+    // لا نرسل Loading هنا لتبقى القائمة ظاهرة
     final result = await deleteRoleUseCase(event.roleId);
 
     result.fold(
-          (failure) => emit(RolesFailed(failure.message)),
+          (failure) {
+        // نرسل الفشل ليتم التقاطه في الـ Listener
+        emit(RolesFailed(failure.message));
+
+        // نعيد الحالة فوراً إلى Loaded (إذا كانت كذلك) لضمان استقرار الواجهة
+        if (currentState is RolesLoaded) {
+          emit(currentState);
+        }
+      },
           (_) {
         emit(const RoleDeleteSuccess('Role deleted successfully'));
         add(FetchRolesEvent());

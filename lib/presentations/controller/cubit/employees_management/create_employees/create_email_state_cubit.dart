@@ -37,6 +37,7 @@ class CreateEmailStateCubit extends Equatable {
     bool? obscurePassword,
     bool? obscureConfirmation,
   }) {
+    // نستخدم منطق يدوي لـ governmentAgencyId للسماح بتمرير null إذا أردنا تصفيره
     return CreateEmailStateCubit(
       name: name ?? this.name,
       email: email ?? this.email,

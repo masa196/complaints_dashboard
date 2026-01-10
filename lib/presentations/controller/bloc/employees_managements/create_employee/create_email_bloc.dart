@@ -1,4 +1,3 @@
-// lib/auth_admin/presentations/controllers/block/create_email_bloc.dart
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dartz/dartz.dart';
@@ -15,6 +14,8 @@ class CreateEmailBloc extends Bloc<CreateEmailEvent, CreateEmailState> {
 
   CreateEmailBloc({required this.createEmailUseCase}) : super(CreateEmailInitial()) {
     on<CreateEmailRequested>(_onCreateEmailRequested);
+
+    on<ResetCreateEmailEvent>((event, emit) => emit(CreateEmailInitial()));
   }
 
   Future<void> _onCreateEmailRequested(CreateEmailRequested event, Emitter<CreateEmailState> emit) async {

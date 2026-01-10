@@ -1,4 +1,4 @@
-// lib/auth_admin/presentations/controllers/block/auth_state.dart
+
 part of 'auth_bloc.dart';
 
 abstract class AuthState extends Equatable {

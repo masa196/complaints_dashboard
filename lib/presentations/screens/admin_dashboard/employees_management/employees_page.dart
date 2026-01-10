@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/di.dart'; // تأكد من استيراد AppDependencies
 import '../../../../data/models/employees/employees_model.dart';
 import '../../../../data/models/employees/paginated_employees_model.dart';
 import '../../../../domain/entities/employees/update_employee_entity.dart';
@@ -26,26 +25,26 @@ class EmployeesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ملاحظة: لا نضع MultiBlocProvider هنا لأننا سنضعهم في AppDependencies
-    // أو في AdminPanelApp لضمان استمرارية الحالة عند التنقل في الـ Sidebar
     return BlocConsumer<EmployeesBloc, EmployeesState>(
       listener: _listener,
       builder: (context, state) {
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'إدارة الموظفين',
               style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF203B37) // لون متناسق مع الـ Sidebar
+                  color: Color(0xFF203B37)
               ),
             ),
             const SizedBox(height: 8),
             const Text(
-              'يمكنك إدارة بيانات الموظفين وصلاحياتهم من هنا.',
-              style: TextStyle(color: Colors.grey),
+              'يمكنك إدارة بيانات الموظفين وصلاحياتهم من هنا',
+              style: TextStyle( color: Color(0xFFEEE8B2),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,),
             ),
             const SizedBox(height: 24),
             Expanded(
@@ -328,7 +327,8 @@ class EmployeesPage extends StatelessWidget {
             ),
             child: Text(
               'صفحة ${data.currentPage} من ${data.lastPage}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFEEE8B2),
+                  ),
             ),
           ),
           IconButton(
@@ -345,16 +345,41 @@ class EmployeesPage extends StatelessWidget {
   void _showUserRoles(BuildContext context, EmployeeModel employee) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: Text('أدوار ${employee.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: employee.safeRoles.map((r) => ListTile(
-            leading: const Icon(Icons.check_circle, color: Colors.green),
-            title: Text(r.name ?? ''),
-          )).toList(),
+      builder: (_) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          backgroundColor: AppColors.c4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'أدوار الموظف: ${employee.name}',
+            style: const TextStyle(color: AppColors.c1, fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: SizedBox(
+            width: double.minPositive,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: employee.safeRoles.isEmpty
+                  ? [const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('لا توجد أدوار مسندة حالياً', style: TextStyle(color: AppColors.c6)),
+              )]
+                  : employee.safeRoles.map((r) => ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.verified_user_rounded, color: AppColors.c6),
+                title: Text(
+                  r.name ?? '',
+                  style: const TextStyle(color: AppColors.c1, fontSize: 15),
+                ),
+              )).toList(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق', style: TextStyle(color: AppColors.c6, fontWeight: FontWeight.bold)),
+            ),
+          ],
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('إغلاق'))],
       ),
     );
   }
